@@ -671,9 +671,9 @@ void epd_copy_to_framebuffer(Rect_t image_area, uint8_t *image_data,
 }
 
 
-void IRAM_ATTR epd_draw_grayscale_image(Rect_t area, uint8_t *data)
+void IRAM_ATTR epd_draw_grayscale_image(framebuffer_t* framebuffer)
 {
-    epd_draw_image(area, data, BLACK_ON_WHITE);
+    epd_draw_image(framebuffer, BLACK_ON_WHITE);
 }
 
 
@@ -766,7 +766,8 @@ void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
 }
 
 
-void IRAM_ATTR epd_draw_image(Rect_t area, uint8_t *data, DrawMode_t mode)
+
+void IRAM_ATTR epd_draw_image(framebuffer_t* fb, DrawMode_t mode)
 {
     uint8_t frame_count = 15;
 
@@ -776,15 +777,15 @@ void IRAM_ATTR epd_draw_image(Rect_t area, uint8_t *data, DrawMode_t mode)
     for (uint8_t k = 0; k < frame_count; k++)
     {
         OutputParams p1 = {
-            .area = area,
-            .data_ptr = data,
+            .area = fb->area,
+            .data_ptr = fb->framebuffer,
             .frame = k,
             .mode = mode,
             .done_smphr = fetch_sem,
         };
         OutputParams p2 = {
-            .area = area,
-            .data_ptr = data,
+            .area = fb->area,
+            .data_ptr = fb->framebuffer,
             .frame = k,
             .mode = mode,
             .done_smphr = feed_sem,
