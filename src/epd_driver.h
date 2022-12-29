@@ -159,7 +159,7 @@ void epd_push_pixels(Rect_t area, int16_t time, int32_t color);
  *             over multiple rows, images of uneven width must add a padding
  *             nibble per line.
  */
-void IRAM_ATTR epd_draw_grayscale_image(Rect_t area, uint8_t *data);
+void IRAM_ATTR epd_draw_grayscale_image(framebuffer_t* framebuffer);
 
 /**
  * @brief Draw a picture to a given area, with some draw mode.
@@ -174,7 +174,7 @@ void IRAM_ATTR epd_draw_grayscale_image(Rect_t area, uint8_t *data);
  *             over multiple rows, images of uneven width must add a padding
  *             nibble per line.
  */
-void IRAM_ATTR epd_draw_image(Rect_t area, uint8_t *data, DrawMode_t mode);
+void IRAM_ATTR epd_draw_image(framebuffer_t* fb, DrawMode_t mode);
 
 void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr, DrawMode_t mode, int32_t time);
 
