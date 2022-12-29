@@ -41,7 +41,8 @@ extern "C" {
 /******************************************************************************/
 
 void libjpeg_init(void);
-void show_jpg_from_buff(uint8_t *buff, uint32_t buff_size, Rect_t area);
+//void show_jpg_from_buff(uint8_t *buff, uint32_t buff_size, Rect_t area);
+void show_jpg_from_buff(framebuffer_t* fb, uint32_t buff_size);
 // void show_jpg_from_spiffs(const char *fn);
 void libjpeg_deinit(void);
 
