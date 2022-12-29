@@ -77,7 +77,9 @@ static uint32_t tjd_output(JDEC *jd, void *bitmap, JRECT *rect);
 /**
  * @brief This function opens jpeg_buf Jpeg image file and primes the decoder
  */
-static int draw_jpeg(uint8_t *jpeg_buf, Rect_t *area);
+//static int draw_jpeg(uint8_t *jpeg_buf, Rect_t *area);
+static int draw_jpeg(framebuffer_t* fb);
+
 
 /******************************************************************************/
 /***        exported variables                                              ***/
@@ -191,9 +193,10 @@ void show_jpg_from_spiffs(const char *fn)
 #endif
 
 
-void show_jpg_from_buff(uint8_t *buff, uint32_t buff_size, Rect_t area)
+//void show_jpg_from_buff(uint8_t *buff, uint32_t buff_size, Rect_t area)
+void show_jpg_from_buff(framebuffer_t* fb, uint32_t buff_size)
 {
-    if (!buff || buff_size == 0)
+    if (!fb->framebuffer || buff_size == 0)
     {
         ESP_LOGE(TAG, "jpeg file is NULL");
         return ;
@@ -203,14 +206,14 @@ void show_jpg_from_buff(uint8_t *buff, uint32_t buff_size, Rect_t area)
 
     memset(decoded_image, 255, EPD_WIDTH * EPD_HEIGHT);
 
-    draw_jpeg(buff, &area);
+    draw_jpeg(fb);
 
 #if LIBJPEG_MEASURE
     time_update_screen = esp_timer_get_time();
 #endif
 
-    epd_clear_area(area);
-    epd_draw_grayscale_image(area, decoded_image);
+    epd_clear_area(fb->area);
+    epd_draw_grayscale_image(fb);
 
 #if LIBJPEG_MEASURE
     time_update_screen = (esp_timer_get_time() - time_update_screen) / 1000;
@@ -358,22 +361,23 @@ static uint32_t tjd_output(JDEC *jd, void *bitmap, JRECT *rect)
 }
 
 
-static int draw_jpeg(uint8_t *jpeg_buf, Rect_t *area)
+//static int draw_jpeg(uint8_t *jpeg_buf, Rect_t *area)
+static int draw_jpeg(framebuffer_t* fb)
 {
     JDEC jd;
     JRESULT rc;
 
     jpeg_buf_pos = 0; //此值不要忘了初始化
 
-    rc = jd_prepare(&jd, feed_buffer, tjpgd_work, sizeof(tjpgd_work), jpeg_buf);
+    rc = jd_prepare(&jd, feed_buffer, tjpgd_work, sizeof(tjpgd_work), fb->framebuffer);
     if (rc != JDR_OK)
     {
         ESP_LOGE(TAG, "prepare error: %s", jd_errors[rc]);
         return ESP_FAIL;
     }
 
-    area->width = jd.width;
-    area->height = jd.height;
+    fb->area.width = jd.width;
+    fb->area.height = jd.height;
 
 #if LIBJPEG_MEASURE
     uint32_t decode_start = esp_timer_get_time();
@@ -393,7 +397,7 @@ static int draw_jpeg(uint8_t *jpeg_buf, Rect_t *area)
 #endif
 
     // Render the image onto the screen at given coordinates
-    jpeg_render(*area);
+    jpeg_render(fb->area);
 
     return 1;
 }
