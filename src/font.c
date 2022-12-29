@@ -183,7 +183,7 @@ void write_mode(const GFXfont *font,
     get_text_bounds(font, string, &tmp_cur_x, &tmp_cur_y, &x1, &y1, &w, &h, &props);
 
     framebuffer_t buff;
-    framebuffer_t* buffptr = &buff;
+    
     //uint8_t *buffer;
     //int32_t buf_width;
     //int32_t buf_height;
@@ -226,7 +226,7 @@ void write_mode(const GFXfont *font,
                            local_cursor_y - (font->advance_y - baseline_height) + l,
                            w,
                            bg << 4,
-                           buffptr);
+                           (framebuffer_t*)&buff);
         }
     }
     while ((c = next_cp((uint8_t **)&string)))
