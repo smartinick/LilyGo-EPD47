@@ -245,7 +245,7 @@ void write_mode(const GFXfont *font,
             .width = w,
             .height = h
         };
-        epd_draw_image(area, buff.framebuffer, mode);
+        epd_draw_image((framebuffer_t*)&buff, mode);
         free(buff.framebuffer);
     }
 }
