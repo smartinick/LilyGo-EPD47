@@ -174,9 +174,11 @@ void IRAM_ATTR epd_draw_grayscale_image(framebuffer_t* framebuffer);
  *             over multiple rows, images of uneven width must add a padding
  *             nibble per line.
  */
+//void IRAM_ATTR epd_draw_image(Rect_t area, uint8_t *data, DrawMode_t mode);
 void IRAM_ATTR epd_draw_image(framebuffer_t* fb, DrawMode_t mode);
 
-void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr, DrawMode_t mode, int32_t time);
+//void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr, DrawMode_t mode, int32_t time);
+void IRAM_ATTR epd_draw_frame_1bit(framebuffer_t* framebuffer, DrawMode_t mode, int32_t time);
 
 /**
  * @brief Rectancle representing the whole screen area.
