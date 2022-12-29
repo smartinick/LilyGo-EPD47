@@ -168,7 +168,7 @@ void write_mode(const GFXfont *font,
                 const char *string,
                 int32_t *cursor_x,
                 int32_t *cursor_y,
-                uint8_t *framebuffer,
+                framebuffer_t *framebuffer,
                 DrawMode_t mode,
                 const FontProperties *properties)
 {
@@ -182,9 +182,11 @@ void write_mode(const GFXfont *font,
     int32_t tmp_cur_y = *cursor_y;
     get_text_bounds(font, string, &tmp_cur_x, &tmp_cur_y, &x1, &y1, &w, &h, &props);
 
-    uint8_t *buffer;
-    int32_t buf_width;
-    int32_t buf_height;
+    framebuffer_t buff;
+    framebuffer_t* buffptr = &buff;
+    //uint8_t *buffer;
+    //int32_t buf_width;
+    //int32_t buf_height;
     int32_t baseline_height = *cursor_y - y1;
 
     // The local cursor position:
@@ -193,19 +195,19 @@ void write_mode(const GFXfont *font,
     int32_t local_cursor_x = 0;
     int32_t local_cursor_y = 0;
 
-    if (framebuffer == NULL)
+    if (framebuffer->framebuffer == NULL)
     {
-        buf_width = (w / 2 + w % 2);
-        buf_height = h;
-        buffer = (uint8_t *)malloc(buf_width * buf_height);
-        memset(buffer, 255, buf_width * buf_height);
-        local_cursor_y = buf_height - baseline_height;
+        buff.area.width = (w / 2 + w % 2);
+        buff.area.height = h;
+        buff.framebuffer = (uint8_t *)malloc(buff.area.width  * buff.area.height);
+        memset(buff.framebuffer, 255, buff.area.width  * buff.area.height);
+        local_cursor_y = buff.area.height - baseline_height;
     }
     else
     {
-        buf_width = EPD_WIDTH / 2;
-        buf_height = EPD_HEIGHT;
-        buffer = framebuffer;
+        buff.area.width  = framebuffer->area.width / 2;
+        buff.area.height = framebuffer->area.height;
+        buff.framebuffer = framebuffer->framebuffer;
         local_cursor_x = *cursor_x;
         local_cursor_y = *cursor_y;
     }
@@ -224,12 +226,12 @@ void write_mode(const GFXfont *font,
                            local_cursor_y - (font->advance_y - baseline_height) + l,
                            w,
                            bg << 4,
-                           buffer);
+                           buffptr);
         }
     }
     while ((c = next_cp((uint8_t **)&string)))
     {
-        draw_char(font, buffer, &local_cursor_x, local_cursor_y, buf_width, buf_height, c, &props);
+        draw_char(font, buff.framebuffer, &local_cursor_x, local_cursor_y, buff.area.width, buff.area.height, c, &props);
     }
 
     *cursor_x += local_cursor_x - cursor_x_init;
@@ -243,8 +245,8 @@ void write_mode(const GFXfont *font,
             .width = w,
             .height = h
         };
-        epd_draw_image(area, buffer, mode);
-        free(buffer);
+        epd_draw_image(area, buff.framebuffer, mode);
+        free(buff.framebuffer);
     }
 }
 
@@ -253,7 +255,7 @@ void writeln(const GFXfont *font,
              const char *string,
              int32_t *cursor_x,
              int32_t *cursor_y,
-             uint8_t *framebuffer)
+             framebuffer_t *framebuffer)
 {
     return write_mode(font, string, cursor_x, cursor_y, framebuffer, BLACK_ON_WHITE, NULL);
 }
@@ -263,7 +265,7 @@ void write_string(const GFXfont *font,
                   const char *string,
                   int32_t *cursor_x,
                   int32_t *cursor_y,
-                  uint8_t *framebuffer)
+                  framebuffer_t *framebuffer)
 {
     char *token, *newstring, *tofree;
     if (string == NULL)
