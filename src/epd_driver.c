@@ -671,33 +671,34 @@ void epd_copy_to_framebuffer(Rect_t image_area, uint8_t *image_data,
 }
 
 
+//void IRAM_ATTR epd_draw_grayscale_image(Rect_t area, uint8_t *data)
 void IRAM_ATTR epd_draw_grayscale_image(framebuffer_t* framebuffer)
 {
     epd_draw_image(framebuffer, BLACK_ON_WHITE);
 }
 
 
-void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
-                                   DrawMode_t mode, int32_t time)
+void IRAM_ATTR epd_draw_frame_1bit(framebuffer_t* framebuffer, DrawMode_t mode, int32_t time)
 {
     epd_start_frame();
     uint8_t line[EPD_WIDTH / 8];
+    uint8_t* ptr = framebuffer->framebuffer;
     memset(line, 0, sizeof(line));
 
-    if (area.x < 0)
+    if (framebuffer->area.x < 0)
     {
-        ptr += -area.x / 8;
+        ptr += -framebuffer->area.x / 8;
     }
 
-    int32_t ceil_byte_width = (area.width / 8 + (area.width % 8 > 0));
-    if (area.y < 0)
+    int32_t ceil_byte_width = (framebuffer->area.width / 8 + (framebuffer->area.width % 8 > 0));
+    if (framebuffer->area.y < 0)
     {
-        ptr += ceil_byte_width * -area.y;
+        ptr += ceil_byte_width * -framebuffer->area.y;
     }
 
     for (int32_t i = 0; i < EPD_HEIGHT; i++)
     {
-        if (i < area.y || i >= area.y + area.height)
+        if (i < framebuffer->area.y || i >= framebuffer->area.y + framebuffer->area.height)
         {
             skip_row(time);
             continue;
@@ -705,7 +706,7 @@ void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
 
         uint8_t *lp;
         bool shifted = 0;
-        if (area.width == EPD_WIDTH && area.x == 0)
+        if (framebuffer->area.width == EPD_WIDTH && framebuffer->area.x == 0)
         {
             lp = ptr;
             ptr += EPD_WIDTH / 8;
@@ -714,14 +715,14 @@ void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
         {
             uint8_t *buf_start = (uint8_t *)line;
             uint32_t line_bytes = ceil_byte_width;
-            if (area.x >= 0)
+            if (framebuffer->area.x >= 0)
             {
-                buf_start += area.x / 8;
+                buf_start += framebuffer->area.x / 8;
             }
             else
             {
                 // reduce line_bytes to actually used bytes
-                line_bytes += area.x / 8;
+                line_bytes += framebuffer->area.x / 8;
             }
             line_bytes =
                 min(line_bytes, EPD_WIDTH / 8 - (uint32_t)(buf_start - line));
@@ -729,17 +730,17 @@ void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
             ptr += ceil_byte_width;
 
             // mask last n bits if width is not divisible by 8
-            if (area.width % 8 != 0 && ceil_byte_width + 1 < EPD_WIDTH)
+            if (framebuffer->area.width % 8 != 0 && ceil_byte_width + 1 < EPD_WIDTH)
             {
                 uint8_t mask = 0;
-                for (int32_t s = 0; s < area.width % 8; s++)
+                for (int32_t s = 0; s < framebuffer->area.width % 8; s++)
                 {
                     mask = (mask << 1) | 1;
                 }
                 *(buf_start + line_bytes - 1) &= mask;
             }
 
-            if (area.x % 8 != 0 && area.x < EPD_WIDTH)
+            if (framebuffer->area.x % 8 != 0 && framebuffer->area.x < EPD_WIDTH)
             {
                 // shift to right
                 shifted = true;
@@ -747,7 +748,7 @@ void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
                     buf_start,
                     min(line_bytes + 1,
                         (uint32_t)line + EPD_WIDTH / 8 - (uint32_t)buf_start),
-                    area.x % 8);
+                    framebuffer->area.x % 8);
             }
             lp = line;
         }
@@ -764,7 +765,6 @@ void IRAM_ATTR epd_draw_frame_1bit(Rect_t area, uint8_t *ptr,
     }
     epd_end_frame();
 }
-
 
 
 void IRAM_ATTR epd_draw_image(framebuffer_t* fb, DrawMode_t mode)
