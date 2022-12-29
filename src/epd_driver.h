@@ -37,6 +37,16 @@ extern "C" {
 /******************************************************************************/
 
 /**
+ * @brief Framebuffer Struct to cope with height and width of non-fullscreen framebuffers
+ */
+typedef struct
+{
+    uint8_t* fb;
+    uint16_t width;
+    uint16_t height;
+} framebuffer_t;
+    
+/**
  * @brief An area on the display.
  */
 typedef struct
