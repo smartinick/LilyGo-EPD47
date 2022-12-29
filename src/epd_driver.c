@@ -87,7 +87,7 @@ static void IRAM_ATTR provide_out(OutputParams *params);
 static void IRAM_ATTR feed_display(OutputParams *params);
 
 static void epd_fill_circle_helper(int32_t x0, int32_t y0, int32_t r, int32_t corners, int32_t delta,
-                            uint8_t color, uint8_t *framebuffer);
+                            uint8_t color, framebuffer_t *framebuffer);
 
 /******************************************************************************/
 /***        exported variables                                              ***/
@@ -243,6 +243,11 @@ Rect_t epd_full_screen()
 }
 
 
+void epd_clear_customarea(framebuffer_t fb)
+{
+    epd_clear_area(fb.area);
+}
+
 void epd_clear()
 {
     epd_clear_area(epd_full_screen());
@@ -301,7 +306,7 @@ inline uint32_t min(uint32_t x, uint32_t y)
 }
 
 
-void epd_draw_hline(int32_t x, int32_t y, int32_t length, uint8_t color, uint8_t *framebuffer)
+void epd_draw_hline(int32_t x, int32_t y, int32_t length, uint8_t color, framebuffer_t *framebuffer)
 {
     for (int32_t i = 0; i < length; i++)
     {
@@ -311,7 +316,7 @@ void epd_draw_hline(int32_t x, int32_t y, int32_t length, uint8_t color, uint8_t
 }
 
 
-void epd_draw_vline(int32_t x, int32_t y, int32_t length, uint8_t color, uint8_t *framebuffer)
+void epd_draw_vline(int32_t x, int32_t y, int32_t length, uint8_t color, framebuffer_t *framebuffer)
 {
     for (int32_t i = 0; i < length; i++)
     {
@@ -321,17 +326,17 @@ void epd_draw_vline(int32_t x, int32_t y, int32_t length, uint8_t color, uint8_t
 }
 
 
-void epd_draw_pixel(int32_t x, int32_t y, uint8_t color, uint8_t *framebuffer)
+void epd_draw_pixel(int32_t x, int32_t y, uint8_t color, framebuffer_t *framebuffer)
 {
-    if (x < 0 || x >= EPD_WIDTH)
+    if (x < 0 || x >= framebuffer->area.width)
     {
         return;
     }
-    if (y < 0 || y >= EPD_HEIGHT)
+    if (y < 0 || y >= framebuffer->area.height)
     {
         return;
     }
-    uint8_t *buf_ptr = &framebuffer[y * EPD_WIDTH / 2 + x / 2];
+    uint8_t *buf_ptr = &framebuffer[y * framebuffer->area.width / 2 + x / 2];
     if (x % 2)
     {
         *buf_ptr = (*buf_ptr & 0x0F) | (color & 0xF0);
@@ -343,7 +348,7 @@ void epd_draw_pixel(int32_t x, int32_t y, uint8_t color, uint8_t *framebuffer)
 }
 
 
-void epd_draw_circle(int32_t x0, int32_t y0, int32_t r, uint8_t color, uint8_t *framebuffer)
+void epd_draw_circle(int32_t x0, int32_t y0, int32_t r, uint8_t color, framebuffer_t *framebuffer)
 {
     int32_t f = 1 - r;
     int32_t ddF_x = 1;
@@ -380,7 +385,7 @@ void epd_draw_circle(int32_t x0, int32_t y0, int32_t r, uint8_t color, uint8_t *
 }
 
 
-void epd_fill_circle(int32_t x0, int32_t y0, int32_t r, uint8_t color, uint8_t *framebuffer)
+void epd_fill_circle(int32_t x0, int32_t y0, int32_t r, uint8_t color, framebuffer_t *framebuffer)
 {
     epd_draw_vline(x0, y0 - r, 2 * r + 1, color, framebuffer);
     epd_fill_circle_helper(x0, y0, r, 3, 0, color, framebuffer);
@@ -388,7 +393,7 @@ void epd_fill_circle(int32_t x0, int32_t y0, int32_t r, uint8_t color, uint8_t *
 
 
 static void epd_fill_circle_helper(int32_t x0, int32_t y0, int32_t r, int32_t corners, int32_t delta,
-                            uint8_t color, uint8_t *framebuffer)
+                            uint8_t color, framebuffer_t *framebuffer)
 {
     int32_t f = 1 - r;
     int32_t ddF_x = 1;
@@ -433,7 +438,7 @@ static void epd_fill_circle_helper(int32_t x0, int32_t y0, int32_t r, int32_t co
 }
 
 
-void epd_draw_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t color, uint8_t *framebuffer)
+void epd_draw_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t color, framebuffer_t *framebuffer)
 {
     epd_draw_hline(x, y, w, color, framebuffer);
     epd_draw_hline(x, y + h - 1, w, color, framebuffer);
@@ -442,7 +447,7 @@ void epd_draw_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t color, ui
 }
 
 
-void epd_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t color, uint8_t *framebuffer)
+void epd_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t color, framebuffer_t *framebuffer)
 {
     for (int32_t i = x; i < x + w; i++)
     {
@@ -451,7 +456,7 @@ void epd_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint8_t color, ui
 }
 
 
-void epd_write_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t color, uint8_t *framebuffer)
+void epd_write_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t color, framebuffer_t *framebuffer)
 {
     int32_t steep = abs(y1 - y0) > abs(x1 - x0);
     if (steep)
@@ -502,7 +507,7 @@ void epd_write_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t colo
 }
 
 
-void epd_draw_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t color, uint8_t *framebuffer)
+void epd_draw_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t color, framebuffer_t *framebuffer)
 {
     // Update in subclasses if desired!
     if (x0 == x1)
@@ -525,7 +530,7 @@ void epd_draw_line(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint8_t color
 
 
 void epd_draw_triangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2,
-                       uint8_t color, uint8_t *framebuffer)
+                       uint8_t color, framebuffer_t *framebuffer)
 {
     epd_draw_line(x0, y0, x1, y1, color, framebuffer);
     epd_draw_line(x1, y1, x2, y2, color, framebuffer);
@@ -534,7 +539,7 @@ void epd_draw_triangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x
 
 
 void epd_fill_triangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2,
-                       uint8_t color, uint8_t *framebuffer)
+                       uint8_t color, framebuffer_t *framebuffer)
 {
     int32_t a, b, y, last;
 
@@ -627,9 +632,9 @@ void epd_fill_triangle(int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x
 
 
 void epd_copy_to_framebuffer(Rect_t image_area, uint8_t *image_data,
-                             uint8_t *framebuffer)
+                             framebuffer_t *fb)
 {
-    assert(image_data != NULL || framebuffer != NULL);
+    assert(image_data != NULL || fb->framebuffer != NULL);
 
     for (uint32_t i = 0; i < image_area.width * image_area.height; i++)
     {
@@ -644,16 +649,16 @@ void epd_copy_to_framebuffer(Rect_t image_area, uint8_t *image_data,
                                         : image_data[value_index / 2] & 0x0F;
 
         int32_t xx = image_area.x + i % image_area.width;
-        if (xx < 0 || xx >= EPD_WIDTH)
+        if (xx < 0 || xx >= fb->area.width)
         {
             continue;
         }
         int32_t yy = image_area.y + i / image_area.width;
-        if (yy < 0 || yy >= EPD_HEIGHT)
+        if (yy < 0 || yy >= fb->area.height)
         {
             continue;
         }
-        uint8_t *buf_ptr = &framebuffer[yy * EPD_WIDTH / 2 + xx / 2];
+        uint8_t *buf_ptr = &fb->framebuffer[yy * fb->area.width / 2 + xx / 2];
         if (xx % 2)
         {
             *buf_ptr = (*buf_ptr & 0x0F) | (val << 4);
