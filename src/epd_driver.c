@@ -336,7 +336,7 @@ void epd_draw_pixel(int32_t x, int32_t y, uint8_t color, framebuffer_t *framebuf
     {
         return;
     }
-    uint8_t *buf_ptr = &framebuffer[y * framebuffer->area.width / 2 + x / 2];
+    uint8_t *buf_ptr = &framebuffer->framebuffer[y * framebuffer->area.width / 2 + x / 2];
     if (x % 2)
     {
         *buf_ptr = (*buf_ptr & 0x0F) | (color & 0xF0);
